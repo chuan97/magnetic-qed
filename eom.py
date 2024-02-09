@@ -30,6 +30,7 @@ def LLG_memory(t, m, Bext, Brms, wc, kappa, N, gammaLL, alpha, xp0):
     G = np.exp(-kappa * t) * (np.cos(wc * t)*(xp0[0] - gammaLL*N*LLG_memory.S) - np.sin(wc * t)*(xp0[1] - gammaLL*N*LLG_memory.C))
     Beff = Bext + Brms*G
     LLG_memory.last_t = t
+    
     return -gammaLL * (np.cross(m, Beff) + alpha*np.cross(m, np.cross(m, Beff))) / (1 + alpha**2)
 
 def f_alpha(ms, ts, Brms, wc, kappa, N, gammaLL, alpha0):
@@ -39,5 +40,6 @@ def f_alpha(ms, ts, Brms, wc, kappa, N, gammaLL, alpha0):
     alphas[0] = alpha0
     for i, t in enumerate(ts[1:], start=1):
         I += np.exp(kappa * t) * np.exp(1j * wc * t) * np.dot(Brms, ms[i]) * dt
-        alphas[i] = np.exp(-kappa * t) * (alpha0*np.exp(-1j * wc * t) + 1j*N/2*gammaLL*np.exp(-1j * wc * t)*I)
+        alphas[i] = np.exp(-kappa * t) * np.exp(-1j * wc * t) * (alpha0 + 1j*N/2*gammaLL*I)
+        
     return alphas
