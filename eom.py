@@ -43,3 +43,4 @@ def f_alpha(ms, ts, Brms, wc, kappa, N, gammaLL, alpha0):
         alphas[i] = np.exp(-kappa * t) * np.exp(-1j * wc * t) * (alpha0 + 1j*N/2*gammaLL*I)
         
     return alphas
+
