@@ -51,6 +51,49 @@ def LLG_memory(t, m, Bext, Brms, wc, kappa, N, gammaLL, alpha, xp0):
     )
 
 
+def LLG_memory_3(t, m, Bext, Brms, wc, kappa, N, gammaLL, alpha, xp0):
+    dt = t - LLG_memory_3.last_t
+
+    # if undoing a previous step that had too big an error
+    if dt < 0.0:
+        # restore the memory to its state before the last full step
+        LLG_memory_3.S = LLG_memory_3.cache_start_S
+        LLG_memory_3.C = LLG_memory_3.cache_start_C
+
+        # and recompute dt
+        dt = t - LLG_memory_3.cache_start_t
+
+    lastcall = not dt
+    # if it is the 6th RK call (k7) which is evaluated for the same time as the 5th call (k6)
+    # (the time being a full timestep after the previous step)
+    if lastcall:
+        # cache memory term in case the integrator decides to repeat the step
+        LLG_memory_3.cache_start_S = LLG_memory_3.cache_final_S
+        LLG_memory_3.cache_start_C = LLG_memory_3.cache_final_C
+        LLG_memory_3.cache_start_t = LLG_memory_3.last_t
+        LLG_memory_3.cache_final_S = LLG_memory_3.S
+        LLG_memory_3.cache_final_C = LLG_memory_3.C
+
+    LLG_memory_3.last_t = t
+    LLG_memory_3.S += (
+        np.exp(kappa * t) * np.sin(wc * t) * np.dot(Brms, m) * dt * (t > 0)
+    )
+    LLG_memory_3.C += (
+        np.exp(kappa * t) * np.cos(wc * t) * np.dot(Brms, m) * dt * (t > 0)
+    )
+    G = np.exp(-kappa * t) * (
+        np.cos(wc * t) * (xp0[0] - gammaLL * N * LLG_memory_3.S)
+        - np.sin(wc * t) * (xp0[1] - gammaLL * N * LLG_memory_3.C)
+    )
+    Beff = Bext + Brms * G
+
+    return (
+        -gammaLL
+        * (np.cross(m, Beff) + alpha * np.cross(m, np.cross(m, Beff)))
+        / (1 + alpha**2)
+    )
+
+
 def LLG_memory_1(t, m, Bext, Brms, wc, kappa, N, gammaLL, alpha, xp0):
     dt = t - LLG_memory_1.last_t
     lastcall = not dt
